@@ -29,6 +29,43 @@ parse_line line = do
         in
             row
 
+d :: [Int]
+d = [1,1,2,3,1,1,2,2,3]
+d2 :: [[Double]]
+d2 = [[0, 0, 0, 0], [0,0,0,0], [0,0,1,0], [0,0,2,0], [0,0,1,0]]
+
+-- getUnique' (not equal to last)
+gu' :: Int -> [Int] -> [Int]
+gu' h [] = [h]
+gu' h t = 
+    case (h == (head t)) of
+        True    -> gu' (head t) (tail t)
+        False   -> [h] ++ (gu' (head t) (tail t))
+
+-- getUnique (not equal to last)
+gu :: [Int] -> [Int]
+gu row = gu' (head row) (tail row)
+
+gu2' :: [Double] -> [[Double]] -> [[Double]]
+gu2' h [] = [h]
+gu2' h t =
+    case ((h !! 2) == ((head t) !! 2)) of
+        True    -> gu2' (head t) (tail t)
+        False   -> [h] ++ (gu2' (head t) (tail t))
+
+gu2 :: [[Double]] -> [[Double]]
+gu2 row = gu2' (head row) (tail row)
+
+unique_hour' :: [[Double]] -> Double -> [[Double]]
+unique_hour' [] _ = []
+unique_hour' rows hour = do
+    let result = (filter (\[d,m,h,de] -> h /= hour) (rows))
+        in result ++ (unique_hour' result (hour + 1))
+
+unique_hour :: [[Double]] -> [[Double]]
+unique_hour rows = do
+    [[0]]
+
 -- :main gridwatch.2013-2014.csv
 main :: IO()
 main = do
@@ -49,4 +86,4 @@ main = do
             putStrLn $ unlines $ map show $ take 10 out_data
             
             -- Write normalised training data to file
-            writeFile (file_name ++ ".out.csv") out_data_s
+            --writeFile (file_name ++ ".out.csv") out_data_s
