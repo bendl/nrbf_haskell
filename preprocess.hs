@@ -19,10 +19,10 @@ parse_line line = do
         dates       = splitOn "-" (date_time !! 1)
         times       = splitOn ":" (date_time !! 2)
         
-        demand  = (read (parts !! 2) :: Double)
-        month   = (read (dates !! 1) :: Double)
         day     = (read (dates !! 2) :: Double)
+        month   = (read (dates !! 1) :: Double)
         hour    = (read (times !! 0) :: Double)
+        demand  = (read (parts !! 2) :: Double)
 
         row = (map (\f -> dp2 f 2) $
             (normalise_date [day, month, hour])) ++ [demand]
@@ -34,37 +34,47 @@ d = [1,1,2,3,1,1,2,2,3]
 d2 :: [[Double]]
 d2 = [[0, 0, 0, 0], [0,0,0,0], [0,0,1,0], [0,0,2,0], [0,0,1,0]]
 
--- getUnique' (not equal to last)
-gu' :: Int -> [Int] -> [Int]
-gu' h [] = [h]
-gu' h t = 
-    case (h == (head t)) of
-        True    -> gu' (head t) (tail t)
-        False   -> [h] ++ (gu' (head t) (tail t))
 
--- getUnique (not equal to last)
-gu :: [Int] -> [Int]
-gu row = gu' (head row) (tail row)
+d3 = [[3.0e-2,8.0e-2,0.0,32276.0],
+    [3.0e-2,8.0e-2,0.0,32190.0],
+    [3.0e-2,8.0e-2,0.0,32313.0],
+    [3.0e-2,8.0e-2,0.0,32396.0],
+    [3.0e-2,8.0e-2,0.0,32439.0],
+    [3.0e-2,8.0e-2,0.0,32499.0],
+    [3.0e-2,8.0e-2,0.0,32444.0],
+    [3.0e-2,8.0e-2,0.0,32483.0],
+    [3.0e-2,8.0e-2,0.0,32829.0],
+    [3.0e-2,8.0e-2,0.0,32967.0],
+    [3.0e-2,8.0e-2,0.0,33037.0],
+    [3.0e-2,8.0e-2,0.0,33037.0],
+    [3.0e-2,8.0e-2,4.0e-2,33027.0],
+    [3.0e-2,8.0e-2,4.0e-2,32945.0],
+    [3.0e-2,8.0e-2,4.0e-2,32988.0],
+    [3.0e-2,8.0e-2,4.0e-2,32949.0],
+    [3.0e-2,8.0e-2,4.0e-2,32804.0],
+    [3.0e-2,8.0e-2,4.0e-2,32746.0],
+    [3.0e-2,8.0e-2,4.0e-2,32629.0],
+    [3.0e-2,8.0e-2,4.0e-2,32450.0],
+    [3.0e-2,8.0e-2,4.0e-2,32294.0],
+    [3.0e-2,8.0e-2,4.0e-2,32072.0],
+    [3.0e-2,8.0e-2,4.0e-2,31862.0],
+    [3.0e-2,8.0e-2,4.0e-2,31639.0],
+    [3.0e-2,8.0e-2,8.0e-2,31419.0],
+    [3.0e-2,8.0e-2,8.0e-2,31239.0],
+    [3.0e-2,8.0e-2,8.0e-2,31153.0],
+    [3.0e-2,8.0e-2,8.0e-2,31066.0],
+    [3.0e-2,8.0e-2,8.0e-2,30824.0],
+    [3.0e-2,8.0e-2,8.0e-2,30632.0]]
 
-gu2' :: [Double] -> [[Double]] -> [[Double]]
-gu2' h [] = [h]
-gu2' h t =
+get_next_hour' :: [Double] -> [[Double]] -> [[Double]]
+get_next_hour' h [] = [h]
+get_next_hour' h t =
     case ((h !! 2) == ((head t) !! 2)) of
-        True    -> gu2' (head t) (tail t)
-        False   -> [h] ++ (gu2' (head t) (tail t))
+        True    -> get_next_hour' (head t) (tail t)
+        False   -> [h] ++ (get_next_hour' (head t) (tail t))
 
-gu2 :: [[Double]] -> [[Double]]
-gu2 row = gu2' (head row) (tail row)
-
-unique_hour' :: [[Double]] -> Double -> [[Double]]
-unique_hour' [] _ = []
-unique_hour' rows hour = do
-    let result = (filter (\[d,m,h,de] -> h /= hour) (rows))
-        in result ++ (unique_hour' result (hour + 1))
-
-unique_hour :: [[Double]] -> [[Double]]
-unique_hour rows = do
-    [[0]]
+get_next_hour :: [[Double]] -> [[Double]]
+get_next_hour row = get_next_hour' (head row) (tail row)
 
 -- :main gridwatch.2013-2014.csv
 main :: IO()
@@ -79,11 +89,12 @@ main = do
         file_data   = drop 1 file_lines
         test_data   = file_data
         out_data    = map parse_line test_data
-        out_data_s  = unlines $ map show out_data
+        out_data_hourly = get_next_hour out_data
+        out_data_s  = unlines $ map show (trace' out_data_hourly)
 
         in do
-            -- print out first 10 data lines
-            putStrLn $ unlines $ map show $ take 10 out_data
+            -- print out first 10 hours of data
+            putStrLn $ unlines $ map show $ take 10 out_data_hourly
             
             -- Write normalised training data to file
             --writeFile (file_name ++ ".out.csv") out_data_s
