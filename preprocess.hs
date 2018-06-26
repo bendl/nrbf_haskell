@@ -7,6 +7,10 @@ import Data.List.Split
 import Debug.Trace
 trace' arg = trace (show arg) arg
 
+-- Train Test split
+newtype Tdata = Tdata [[Double]]
+newtype Tts = Tts (Tdata, Tdata)
+
 -- Test data
 d :: [Int]
 d = [1,1,2,3,1,1,2,2,3]
@@ -63,8 +67,8 @@ parse_line line = do
 
         row = (map (\f -> dp2 f 2) $
             (normalise_date [day, month, hour])) ++ [demand]
-        in
-            row
+        
+        in row
 
 get_next_hour' :: [Double] -> [[Double]] -> [[Double]]
 get_next_hour' h [] =[h]
@@ -83,6 +87,23 @@ get_next_hour' h t =
 get_next_hour :: [[Double]] -> [[Double]]
 get_next_hour row = get_next_hour' (head row) (tail row)
 
+-- Split the data into a 70/30 train/test split and store as tuple
+split_70_30 :: [[Double]] -> ([[Double]], [[Double]])
+split_70_30 d = do
+    let len         = length d
+        train_size  = round ((realToFrac len) * 0.7) :: Int
+        in
+            ((take train_size d), (drop train_size d))
+
+write_70_30 :: String -> ([[Double]], [[Double]]) -> IO()
+write_70_30 fn d = do
+    let train_data_str  = unlines $ map show $ fst d
+        test_data_str   = unlines $ map show $ snd d
+        in do
+            writeFile (fn ++ ".train.csv") train_data_str
+            writeFile (fn ++ ".test.csv")  test_data_str
+
+
 -- :main gridwatch.2013-2014.csv
 main :: IO()
 main = do
@@ -91,17 +112,30 @@ main = do
     
     let 
         file_name       = args !! 0
+
+        fn_out          = file_name ++ ".out.csv"
+        fn_out_train    = fn_out ++ ".train.csv"
+        fn_out_test     = fn_out ++ ".test.csv"
+
         file_lines      = lines filec
         header          = take 1 file_lines
         file_data       = drop 1 file_lines
         test_data       = file_data
         out_data        = map parse_line test_data
         out_data_hourly = get_next_hour out_data
+
+        ttd             = split_70_30 out_data_hourly
+
         out_data_s      = unlines $ map show out_data_hourly
 
         in do
             -- print out first 10 hours of data
-            putStrLn $ unlines $ map show $ take 10 out_data_hourly
-            
+            --putStrLn $ unlines $ map show $ take 10 out_data_hourly
+
             -- Write normalised training data to file
-            writeFile (file_name ++ ".out.csv") out_data_s
+            putStrLn "Writing normalised data to .out.csv"
+            writeFile fn_out out_data_s
+
+            -- Write train and test data split to file
+            putStrLn "Writing 70/30 split to (.train/.test).csv"
+            write_70_30 fn_out ttd
