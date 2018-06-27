@@ -8,7 +8,8 @@ import Debug.Trace
 trace' arg = trace (show arg) arg
 
 -- Train Test split
-newtype Tdata = Tdata [[Double]]
+newtype Tdata = Tdata [Double]
+newtype Tpair = Tpair (Double, Double)
 newtype Tts = Tts (Tdata, Tdata)
 
 -- Test data
@@ -47,6 +48,21 @@ d3 = [[3.0e-2,8.0e-2,0.0,32276.0],
     [3.0e-2,8.0e-2,8.0e-2,30824.0],
     [3.0e-2,8.0e-2,8.0e-2,30632.0]]
 
+train10x = "-0.250000\n\n-0.048348\n\n\n0.000000\n\n0.000000\n\n\n0.5\n\n0.138"
+
+-- [1..10] -> [(1,2), (3, 4), ...]
+pairUp :: [a] -> [(a,a)]
+pairUp [] = []
+pairUp [a] = [] -- ignore outlying data
+pairUp (tr:ts:tn) = (tr, ts) : pairUp tn
+
+parsef :: String -> [Double]
+parsef str = do
+    let l = lines str
+        ns = filter (\n -> n /= "") l
+        in map read ns :: [Double]
+
+xdata = pairUp . parsef
 
 normalise_date (d:m:h:[]) = [d/31, m/12, h/24]
 
@@ -109,6 +125,9 @@ main :: IO()
 main = do
     args  <- getArgs
     filec <- readFile $ args !! 0
+
+    train10x_s  <- readFile "data//TRAIN10X.DAT"
+    test10x_s   <- readFile "data//TEST10X.DAT"
     
     let 
         file_name       = args !! 0
@@ -128,14 +147,20 @@ main = do
 
         out_data_s      = unlines $ map show out_data_hourly
 
+        train10x_d      = xdata train10x_s
+        test10x_d       = xdata test10x_s
+
         in do
             -- print out first 10 hours of data
             --putStrLn $ unlines $ map show $ take 10 out_data_hourly
 
             -- Write normalised training data to file
             putStrLn "Writing normalised data to .out.csv"
-            writeFile fn_out out_data_s
+            --writeFile fn_out out_data_s
 
             -- Write train and test data split to file
             putStrLn "Writing 70/30 split to (.train/.test).csv"
-            write_70_30 fn_out ttd
+            --write_70_30 fn_out ttd
+
+            putStrLn ("10X_tr:\n" ++ (unlines $ map show train10x_d))
+            putStrLn ("10X_ts:\n" ++ (unlines $ map show test10x_d))
