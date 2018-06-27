@@ -120,19 +120,3 @@ write_70_30 fn d = do
         in do
             writeFile (fn ++ ".train.csv") train_data_str
             writeFile (fn ++ ".test.csv")  test_data_str
-
--- Euclidian distance
-dist ps qs = sqrt $ sum $ map (^2) $ zipWith (-) ps qs
-
-grbf :: [Double] -> [Double] -> Double
-grbf x xj =
-    exp (- ((top) / (bottom)))
-    where
-        top = (dist x xj) ^^2
-        bottom = 2 * (sigma ^^2)
-        sigma = 5.0
-
-nrbf :: Double
-nrbf = do
-    let d = 3
-        in 3.0

@@ -1,6 +1,7 @@
 module Main where
 
 import System.Environment
+import Control.Monad (when)
 
 import NRBF.Preprocess
 import NRBF
@@ -10,10 +11,13 @@ import NRBF
 main :: IO()
 main = do
     args  <- getArgs
+    when ((length args) == 0) $ 
+        error "Missing input file"
+
     filec <- readFile $ args !! 0
 
-    train10x_s  <- readFile "data//TRAIN10X.DAT"
-    test10x_s   <- readFile "data//TEST10X.DAT"
+    -- train10x_s  <- readFile "data//TRAIN10X.DAT"
+    -- test10x_s   <- readFile "data//TEST10X.DAT"
     
     let 
         file_name       = args !! 0
@@ -33,10 +37,11 @@ main = do
 
         out_data_s      = unlines $ map show out_data_hourly
 
-        train10x_d      = xdata train10x_s
-        test10x_d       = xdata test10x_s
+        --train10x_d      = xdata train10x_s
+        --test10x_d       = xdata test10x_s
 
         in do
+
             -- print out first 10 hours of data
             --putStrLn $ unlines $ map show $ take 10 out_data_hourly
 
@@ -48,5 +53,5 @@ main = do
             putStrLn "Writing 70/30 split to (.train/.test).csv"
             --write_70_30 fn_out ttd
 
-            putStrLn ("10X_tr:\n" ++ (unlines $ map show train10x_d))
-            putStrLn ("10X_ts:\n" ++ (unlines $ map show test10x_d))
+            --putStrLn ("10X_tr:\n" ++ (unlines $ map show train10x_d))
+            --putStrLn ("10X_ts:\n" ++ (unlines $ map show test10x_d))
