@@ -6,8 +6,7 @@ module NRBF.Preprocess where
 import Data.List
 import Data.List.Split
 
-import Debug.Trace
-trace' arg = trace (show arg) arg
+import NRBF.Debug
 
 -- Train Test split
 newtype Tdata = Tdata [Double]
@@ -58,21 +57,21 @@ pairUp [] = []
 pairUp [a] = [] -- ignore outlying data
 pairUp (tr:ts:tn) = (tr, ts) : pairUp tn
 
-parsef :: String -> [Double]
-parsef str = do
+pre_parsef :: String -> [Double]
+pre_parsef str = do
     let l = lines str
         ns = filter (\n -> n /= "") l
         in map read ns :: [Double]
 
-xdata = pairUp . parsef
+pre_xdata = pairUp . pre_parsef
 
 normalise_date (d:m:h:[]) = [d/31, m/12, h/24]
 
 -- Round f to n decimal places
 dp2 f n = (fromInteger $ round $ f * (10^n)) / (10.0^^n)
 
-parse_line :: String -> [Double]
-parse_line line = do
+pre_parse_line :: String -> [Double]
+pre_parse_line line = do
     let parts       = splitOn "," line
         date_time   = splitOn " " (parts !! 1)
         dates       = splitOn "-" (date_time !! 1)
