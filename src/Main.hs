@@ -40,6 +40,8 @@ main = do
         train10x_d      = pre_xdata train10x_s
         test10x_d       = pre_xdata test10x_s
 
+        --netw            = train' train10x_d [[0]]
+
         in do
 
             -- print out first 10 hours of data
@@ -55,3 +57,5 @@ main = do
 
             putStrLn ("10X_tr:\n" ++ (unlines $ map show train10x_d))
             putStrLn ("10X_ts:\n" ++ (unlines $ map show test10x_d))
+
+            putStrLn ("Trained net:\n" ++ (""))
