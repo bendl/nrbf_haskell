@@ -98,7 +98,7 @@ train' dataset weights = do
     trace ("Train Err: " ++ (show train_err)) weights
 
     -- TODO: Change to test RMS error, not train error
-    case ((abs train_err) <= 0.1)  of
+    case (train_err <= 0.1)  of
         True    ->
             -- Good prediction, don't change hidden layer
             weights
@@ -112,6 +112,6 @@ train' dataset weights = do
         td_expec    = snd tdi
         tdn         = drop 1 dataset
         nn_out      = net td_input weights
-        train_err   = (trace'str "NN_expec: " td_expec) 
+        train_err   = abs $ (trace'str "NN_expec: " td_expec) 
                         - (trace'str "NN_output: " nn_out)
         updated_net = update tdi weights

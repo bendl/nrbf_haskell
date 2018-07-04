@@ -1,17 +1,13 @@
 -- Gridwatch download preprocessor
 module NRBF.Preprocess where
 
---import nrbf
+import NRBF
 
 import Data.List
 import Data.List.Split
 
 import NRBF.Debug
 
--- Train Test split
-newtype Tdata = Tdata [Double]
-newtype Tpair = Tpair (Double, Double)
-newtype Tts = Tts (Tdata, Tdata)
 
 -- Test data
 d :: [Int]
@@ -52,10 +48,10 @@ d3 = [[3.0e-2,8.0e-2,0.0,32276.0],
 train10x = "-0.250000\n\n-0.048348\n\n\n0.000000\n\n0.000000\n\n\n0.5\n\n0.138"
 
 -- [1..10] -> [(1,2), (3, 4), ...]
-pairUp :: [a] -> [(a,a)]
+pairUp :: [a] -> [([a],a)]
 pairUp [] = []
 pairUp [a] = [] -- ignore outlying data
-pairUp (tr:ts:tn) = (tr, ts) : pairUp tn
+pairUp (tr:ts:tn) = ([tr], ts) : pairUp tn
 
 pre_parsef :: String -> [Double]
 pre_parsef str = do

@@ -41,6 +41,7 @@ main = do
         test10x_d       = pre_xdata test10x_s
 
         --netw            = train' train10x_d [[0]]
+        trained_net     = train' train10x_d []
 
         in do
 
@@ -58,4 +59,5 @@ main = do
             putStrLn ("10X_tr:\n" ++ (unlines $ map show train10x_d))
             putStrLn ("10X_ts:\n" ++ (unlines $ map show test10x_d))
 
-            putStrLn ("Trained net:\n" ++ (""))
+            putStrLn ("Trained net:\n" ++ (unlines $ map show trained_net))
+            
