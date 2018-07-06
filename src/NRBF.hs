@@ -67,7 +67,7 @@ update td weights = do
     -- 1. Find most active hidden node for (fst DRow)
     -- 2. Apply (0.8 * active hidden node weights) + (0.2 * fst DRow)
     --trace'str "Most active hnode: " most_active_index
-    new_weights
+    trace'str "Final weights: " new_weights
 
     where   td_input            = fst td
             td_expec            = snd td
@@ -89,29 +89,35 @@ td2 = [([5.0], 1.5), ([3.0], 0.8), ([2.8], 0.6)]
 -- Training accepts an input data set, an initial set of weights,
 -- and returns a trained set of weights
 train' :: DSet -> DWeights -> DWeights
--- Dataset, but no weights
-train' dataset [] = train' dataset $ update (head dataset) []
--- Empty dataset with weights
-train' [] weights = trace'str "Empty dataset! Returning..." weights
 train' [] [] = error "DSet and DWeights cannot be empty!"
+-- Dataset, but no weights
+train' dataset [] = train' dataset $ [(fst $ head dataset)]
+-- Empty dataset with weights
+train' [] weights = weights
+-- Dataset and weights present
 train' dataset weights = do
-    trace ("Train Err: " ++ (show train_err)) weights
-
-    -- TODO: Change to test RMS error, not train error
     case (train_err <= 0.1)  of
         True    ->
             -- Good prediction, don't change hidden layer
             weights
         False   ->
             -- Bad prediction, update hidden layer
-            train' (trace'str "\n\nNext dataset: " tdn) (trace'str "New net nodes: " updated_net)
+            train' tdn updated_net
 
     where
         tdi         = trace'str "tdi: " $ head dataset
         td_input    = fst tdi
         td_expec    = snd tdi
         tdn         = drop 1 dataset
-        nn_out      = net td_input weights
-        train_err   = abs $ (trace'str "NN_expec: " td_expec) 
+        current_net = weights
+        nn_out      = net td_input (trace'str "Current weights: " current_net)
+        train_err   = trace "\n\n\nNew iter" abs $ (trace'str "NN_expec: " td_expec) 
                         - (trace'str "NN_output: " nn_out)
-        updated_net = update tdi weights
+        updated_net = update tdi (trace'str "Current Net: " current_net)
+
+-- Input Dataset, iterations, Output RMS error
+fit :: DSet -> Int -> DWeights
+fit dataset 0 = []
+fit dataset 1 = train' dataset []
+fit dataset iterations = 
+    train' dataset $ fit dataset (iterations -1)
