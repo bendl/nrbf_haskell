@@ -25,7 +25,7 @@ grbf x_input x_existing =
     where
         top = (dist x_input x_existing) ^^2
         bottom = 2 * (sigma ^^2)
-        sigma = 1.0
+        sigma = 0.05
 
 weights_for_h 
     hidden_index input_len weights = do
@@ -37,11 +37,11 @@ weights_for_h
 net :: DInput -> DNet -> Double
 net inputs network = 
     assert (length inputs == length (hidden_nodes !! 0))
-        sum hidden_outs_weighted
+        (sum hidden_outs_weighted) / (sum hidden_outs)
     where 
-        hidden_outs             = map (\hw -> grbf inputs hw) hidden_nodes
         hidden_nodes            = fst network
         network_weights         = snd network
+        hidden_outs             = map (\hw -> grbf inputs hw) hidden_nodes
         hidden_outs_weighted    = zipWith (*) hidden_outs network_weights
 
 -- https://stackoverflow.com/questions/1496980/finding-index-of-element-in-a-list-in-haskell
@@ -61,19 +61,23 @@ delta_rule xold xnew =
     
 --                [ [] ]
 hidden_replace :: DHidden -> Int -> DInput -> DHidden
-hidden_replace all_hidden idx new_weights = 
-    (take idx all_hidden) ++ new_weights : (drop (idx + 1) all_hidden)
+hidden_replace all_hidden idx new_hidden = 
+    (take idx all_hidden) ++ new_hidden : (drop (idx + 1) all_hidden)
+
+weight_replace :: DWeights -> Int -> Double -> DWeights
+weight_replace all_weights idx new_weight = 
+    (take idx all_weights) ++ new_weight : (drop (idx + 1) all_weights)
 
 
 -- Update hidden layer, depending on training result
 --  If 
-update :: DRow -> DNet -> DNet
-update td ([], _) = trace "No weights... Setting initial to input..." ([fst td], [snd td])
-update td network = do
+update :: DRow -> Double -> DNet -> DNet
+update td error ([], _) = trace "No weights... Setting initial to input..." ([fst td], [snd td])
+update td error network = do
     -- 1. Find most active hidden node for (fst DRow)
     -- 2. Apply (0.8 * active hidden node weights) + (0.2 * fst DRow)
     --trace'str "Most active hnode: " most_active_index
-    trace'str "Final Network: " (new_weights, snd network)
+    trace'str "Final Network: " (new_hidden_nodes, new_hidden_weights)
 
     where   
             hidden_nodes        = fst network
@@ -84,11 +88,20 @@ update td network = do
             most_active_index   = maxIndex node_activity
             most_active_node_hf = node_activity !! most_active_index
             most_active_node    = hidden_nodes  !! most_active_index
-            updated_weight      = delta_rule most_active_node td_input
-            new_weights         = 
+            most_active_weight  = net_weights   !! most_active_index
+
+            updated_hidden      = delta_rule most_active_node td_input
+            updated_weight      = most_active_weight + (0.2 * error)
+
+            new_hidden_nodes    = 
                 case ((trace' most_active_node_hf) >= 0.9) of
-                    True    -> hidden_replace hidden_nodes most_active_index updated_weight
+                    True    -> hidden_replace hidden_nodes most_active_index updated_hidden
                     False   -> hidden_nodes ++ [td_input]
+            new_hidden_weights  = 
+                case ((trace' most_active_node_hf) >= 0.9) of
+                    True    -> weight_replace net_weights most_active_index updated_weight
+                    False   -> net_weights ++ [error]
+            
 
 td = [([5.0], 1.5)]
 td2 = [([5.0], 1.5), ([3.0], 0.8), ([2.8], 0.6)]
@@ -127,10 +140,10 @@ train' dataset network rms = do
         tdn         = drop 1 dataset
         current_net = network
         nn_out      = net td_input current_net
-        train_err   = abs $ td_expec - nn_out
-        new_rms     = rms ++ [train_err]
+        train_err   = td_expec - nn_out
+        new_rms     = rms ++ [abs train_err]
         perf        = rootMeanSquare new_rms
-        updated_net = update tdi current_net
+        updated_net = update tdi train_err current_net
 
 -- Input Dataset, iterations, Output RMS error
 fit :: DSet -> Int -> (DNet, [Double])

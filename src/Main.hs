@@ -12,14 +12,19 @@ test_fit iterations = do
     
     let
         traind10        = pre_xdata train10x_s
-        trained_net     = fit traind10 iterations
-        trained_netw    = fst trained_net
+        train_result    = fit traind10 iterations
+        trained_net     = fst train_result
+        trained_neth    = fst trained_net
+        trained_netw    = snd trained_net
 
         in do
-            putStrLn ("Weights: " ++ (show (length (snd trained_net))))
-            putStrLn $ unlines $ map show $ fst trained_netw
+            putStrLn ("Hidden Nodes: " ++ (show (length (snd trained_net))))
+            putStrLn $ unlines $ map show $ trained_neth
 
-            writeFile "grbf.csv" $ unlines $ map show $ map (\n -> net [n] trained_netw) [-20.0, -19.9 .. 20.0]
+            putStrLn "Hidden Weights: "
+            putStrLn $ unlines $ map show $ trained_netw
+
+            writeFile "grbf.csv" $ unlines $ map show $ map (\n -> net [n] trained_net) [-1.0, -0.9 .. 5.0]
 
 
 
