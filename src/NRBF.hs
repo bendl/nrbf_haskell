@@ -58,16 +58,10 @@ delta_rule xold xnew =
     --type DWeights = [DInput]
     --type DRow     = (DInput, DOutput)
     --type DSet     = [DRow]
-    
---                [ [] ]
-hidden_replace :: DHidden -> Int -> DInput -> DHidden
-hidden_replace all_hidden idx new_hidden = 
-    (take idx all_hidden) ++ new_hidden : (drop (idx + 1) all_hidden)
 
-weight_replace :: DWeights -> Int -> Double -> DWeights
-weight_replace all_weights idx new_weight = 
-    (take idx all_weights) ++ new_weight : (drop (idx + 1) all_weights)
-
+list_replace :: [a] -> Int -> a -> [a]
+list_replace xs idx x = 
+    (take idx xs) ++ x : (drop (idx + 1) xs)
 
 -- Update hidden layer, depending on training result
 --  If 
@@ -95,11 +89,11 @@ update td error network = do
 
             new_hidden_nodes    = 
                 case ((trace' most_active_node_hf) >= 0.9) of
-                    True    -> hidden_replace hidden_nodes most_active_index updated_hidden
+                    True    -> list_replace hidden_nodes most_active_index updated_hidden
                     False   -> hidden_nodes ++ [td_input]
             new_hidden_weights  = 
                 case ((trace' most_active_node_hf) >= 0.9) of
-                    True    -> weight_replace net_weights most_active_index updated_weight
+                    True    -> list_replace net_weights most_active_index updated_weight
                     False   -> net_weights ++ [error]
             
 
