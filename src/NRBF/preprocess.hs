@@ -9,6 +9,14 @@ import System.Random (randomRIO)
 
 import NRBF.Debug
 
+list_list_to_comma_str [] = ""
+list_list_to_comma_str (row:rest) = 
+    (list_to_comma_str row) ++ "\n" ++ (list_list_to_comma_str rest)
+
+list_to_comma_str [] = ""
+list_to_comma_str (x:[]) = show x
+list_to_comma_str (x:xs) = 
+    (show x) ++ "," ++ (list_to_comma_str xs)
 
 
 shuffle x = if length x < 2 then return x else do
@@ -108,6 +116,10 @@ get_next_hour' h t =
 get_next_hour :: [[Double]] -> [[Double]]
 get_next_hour row = get_next_hour' (head row) (tail row)
 
+list_to_DSet :: [[Double]] -> DSet
+list_to_DSet rows = 
+    map (\r -> (take 3 r, r !! 3)) rows
+
 -- Split the data into a 70/30 train/test split and store as tuple
 split_70_30 :: [[Double]] -> ([[Double]], [[Double]])
 split_70_30 d = do
@@ -118,8 +130,8 @@ split_70_30 d = do
 
 write_70_30 :: String -> ([[Double]], [[Double]]) -> IO()
 write_70_30 fn d = do
-    let train_data_str  = unlines $ map show $ fst d
-        test_data_str   = unlines $ map show $ snd d
+    let train_data_str  = list_list_to_comma_str $ fst d
+        test_data_str   = list_list_to_comma_str $ snd d
         in do
             writeFile (fn ++ ".train.csv") train_data_str
             writeFile (fn ++ ".test.csv")  test_data_str

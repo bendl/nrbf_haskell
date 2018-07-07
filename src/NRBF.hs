@@ -27,13 +27,6 @@ grbf x_input x_existing =
         bottom = 2 * (sigma ^^2)
         sigma = 0.05
 
-weights_for_h 
-    hidden_index input_len weights = do
-        let stride = hidden_index * input_len
-            stride_weights_start = trace' $ drop (trace' stride) weights
-            in take input_len stride_weights_start
-
-
 net :: DInput -> DNet -> Double
 net inputs network = 
     assert (length inputs == length (hidden_nodes !! 0))
@@ -71,7 +64,7 @@ update td error network = do
     -- 1. Find most active hidden node for (fst DRow)
     -- 2. Apply (0.8 * active hidden node weights) + (0.2 * fst DRow)
     --trace'str "Most active hnode: " most_active_index
-    trace'str "Final Network: " (new_hidden_nodes, new_hidden_weights)
+    (new_hidden_nodes, new_hidden_weights)
 
     where   
             hidden_nodes        = fst network
@@ -88,21 +81,18 @@ update td error network = do
             updated_weight      = most_active_weight + (0.2 * error)
 
             new_hidden_nodes    = 
-                case ((trace' most_active_node_hf) >= 0.9) of
+                case (most_active_node_hf >= 0.7) of
                     True    -> list_replace hidden_nodes most_active_index updated_hidden
                     False   -> hidden_nodes ++ [td_input]
+
             new_hidden_weights  = 
-                case ((trace' most_active_node_hf) >= 0.9) of
+                case (most_active_node_hf >= 0.7) of
                     True    -> list_replace net_weights most_active_index updated_weight
                     False   -> net_weights ++ [error]
             
 
 td = [([5.0], 1.5)]
 td2 = [([5.0], 1.5), ([3.0], 0.8), ([2.8], 0.6)]
-
-rms_ll :: [Double] -> [Double] -> Double
-rms_ll pred actual = 
-    rootMeanSquare $ zipWith (-) pred actual
 
 rootMeanSquare :: [Double] -> Double
 rootMeanSquare = sqrt . (((/) . foldr ((+) . (^ 2)) 0) <*> genericLength)
