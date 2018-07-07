@@ -6,6 +6,22 @@ import Control.Monad (when)
 import NRBF.Preprocess
 import NRBF
 
+test_fit :: Int -> IO()
+test_fit iterations = do
+    train10x_s  <- readFile "data//TRAIN10X.DAT"
+    
+    let
+        traind10        = pre_xdata train10x_s
+        trained_net     = fit traind10 iterations
+        trained_netw    = fst trained_net
+
+        in do
+            putStrLn ("Weights: " ++ (show (length (snd trained_net))))
+            putStrLn $ unlines $ map show $ fst trained_netw
+
+            writeFile "grbf.csv" $ unlines $ map show $ map (\n -> net [n] trained_netw) [-20.0, -19.9 .. 20.0]
+
+
 
 -- :main gridwatch.2013-2014.csv
 main :: IO()
@@ -41,7 +57,7 @@ main = do
         test10x_d       = pre_xdata test10x_s
 
         --netw            = train' train10x_d [[0]]
-        trained_net     = train' train10x_d []
+        trained_net     = fit train10x_d 100
 
         in do
 
@@ -59,5 +75,7 @@ main = do
             putStrLn ("10X_tr:\n" ++ (unlines $ map show train10x_d))
             putStrLn ("10X_ts:\n" ++ (unlines $ map show test10x_d))
 
-            putStrLn ("Trained net:\n" ++ (unlines $ map show trained_net))
+            putStrLn ("Trained net:\n" ++ (unlines $ map show $ fst $ fst trained_net))
+            putStrLn ("Trained RMS:\n" ++ (unlines $ map show $ snd trained_net))
+            writeFile "train10x_rms.csv" $ unlines $ map show $ snd trained_net
             
