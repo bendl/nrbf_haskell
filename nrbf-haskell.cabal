@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                nrbf-haskell
-version:             0.1.0.0
+version:             1.0.0
 -- synopsis:
 -- description:
 homepage:            https://github.com/bendl/nrbf_haskell
@@ -13,7 +13,15 @@ maintainer:          ben@bendl.me
 -- copyright:
 -- category:
 build-type:          Simple
-extra-source-files:  ChangeLog.md
+extra-source-files:  
+                      ChangeLog.md 
+                      README.md 
+                      doc/nrbf.png 
+                      doc/nrbf.xml 
+                      test/data/gridwatch.2013-2014.csv
+                      test/data/TEST10X.DAT
+                      test/data/TRAIN10X.DAT
+
 cabal-version:       >=1.10
 
 library
@@ -40,6 +48,7 @@ test-suite tests
                        ,nrbf-haskell
                        ,hspec                >= 1.8
   default-language:    Haskell2010
+  
 --1executable nrbf-haskell
 --1  main-is:             Test_Fit.hs
 --1  -- other-modules:
