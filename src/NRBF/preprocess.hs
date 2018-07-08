@@ -79,6 +79,9 @@ list_to_DSet :: [[Double]] -> DSet
 list_to_DSet rows = 
     map (\r -> (take 3 r, r !! 3)) rows
 
+preprocess_gridwatch      = map pre_parse_line . drop 1 . lines
+preprocess_gridwatch_hour = get_next_hour . preprocess_gridwatch
+
 -- Split the data into a 70/30 train/test split and store as tuple
 split_70_30 :: [[Double]] -> ([[Double]], [[Double]])
 split_70_30 d = do
