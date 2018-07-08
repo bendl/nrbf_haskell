@@ -1,13 +1,14 @@
 -- Gridwatch download preprocessor
 module NRBF.Preprocess where
 
-import NRBF
+import NRBF.Network
 
 import Data.List
 import Data.List.Split
 import System.Random (randomRIO)
 
-import NRBF.Debug
+-- Round f to n decimal places
+dp2 f n = (fromInteger $ round $ f * (10^n)) / (10.0^^n)
 
 list_list_to_comma_str [] = ""
 list_list_to_comma_str (row:rest) = 
@@ -24,45 +25,6 @@ shuffle x = if length x < 2 then return x else do
     r <- shuffle (take i x ++ drop (i+1) x)
     return (x!!i : r)
 
-
--- Test data
-d :: [Int]
-d = [1,1,2,3,1,1,2,2,3]
-d2 :: [[Double]]
-d2 = [[0, 0, 0, 0], [0,0,0,0], [0,0,1,0], [0,0,2,0], [0,0,1,0]]
-d3 = [[3.0e-2,8.0e-2,0.0,32276.0],
-    [3.0e-2,8.0e-2,0.0,32190.0],
-    [3.0e-2,8.0e-2,0.0,32313.0],
-    [3.0e-2,8.0e-2,0.0,32396.0],
-    [3.0e-2,8.0e-2,0.0,32439.0],
-    [3.0e-2,8.0e-2,0.0,32499.0],
-    [3.0e-2,8.0e-2,0.0,32444.0],
-    [3.0e-2,8.0e-2,0.0,32483.0],
-    [3.0e-2,8.0e-2,0.0,32829.0],
-    [3.0e-2,8.0e-2,0.0,32967.0],
-    [3.0e-2,8.0e-2,0.0,33037.0],
-    [3.0e-2,8.0e-2,0.0,33037.0],
-    [3.0e-2,8.0e-2,4.0e-2,33027.0],
-    [3.0e-2,8.0e-2,4.0e-2,32945.0],
-    [3.0e-2,8.0e-2,4.0e-2,32988.0],
-    [3.0e-2,8.0e-2,4.0e-2,32949.0],
-    [3.0e-2,8.0e-2,4.0e-2,32804.0],
-    [3.0e-2,8.0e-2,4.0e-2,32746.0],
-    [3.0e-2,8.0e-2,4.0e-2,32629.0],
-    [3.0e-2,8.0e-2,4.0e-2,32450.0],
-    [3.0e-2,8.0e-2,4.0e-2,32294.0],
-    [3.0e-2,8.0e-2,4.0e-2,32072.0],
-    [3.0e-2,8.0e-2,4.0e-2,31862.0],
-    [3.0e-2,8.0e-2,4.0e-2,31639.0],
-    [3.0e-2,8.0e-2,8.0e-2,31419.0],
-    [3.0e-2,8.0e-2,8.0e-2,31239.0],
-    [3.0e-2,8.0e-2,8.0e-2,31153.0],
-    [3.0e-2,8.0e-2,8.0e-2,31066.0],
-    [3.0e-2,8.0e-2,8.0e-2,30824.0],
-    [3.0e-2,8.0e-2,8.0e-2,30632.0]]
-
-train10x = "-0.250000\n\n-0.048348\n\n\n0.000000\n\n0.000000\n\n\n0.5\n\n0.138"
-
 -- [1..10] -> [(1,2), (3, 4), ...]
 pairUp :: [a] -> [([a],a)]
 pairUp [] = []
@@ -78,9 +40,6 @@ pre_parsef str = do
 pre_xdata = pairUp . pre_parsef
 
 normalise_date (d:m:h:[]) = [d/31, m/12, h/24]
-
--- Round f to n decimal places
-dp2 f n = (fromInteger $ round $ f * (10^n)) / (10.0^^n)
 
 pre_parse_line :: String -> [Double]
 pre_parse_line line = do
